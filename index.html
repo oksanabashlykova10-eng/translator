@@ -28,9 +28,19 @@ button {
   border-radius:10px;
   border:none;
   cursor:pointer;
+  font-size:16px;
+}
+button.primary {
   background:#ff6a00;
   color:#fff;
-  font-size:16px;
+}
+button.toggle {
+  background:#333;
+  color:#fff;
+  margin-top:10px;
+}
+button.toggle.on {
+  background:#ff9f43;
 }
 iframe {
   margin-top:20px;
@@ -41,12 +51,6 @@ iframe {
   margin-top:20px;
   height:180px;
   font-family:monospace;
-}
-.toggle {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:10px;
 }
 </style>
 </head>
@@ -64,16 +68,14 @@ iframe {
 <label>🔥 Акцентный цвет (кнопки)</label>
 <input type="color" id="accent" value="#ff7a00">
 
-<div class="toggle">
-  <input type="checkbox" id="neon" checked>
-  <label for="neon">✨ Включить неоновое свечение</label>
-</div>
+<button id="neonToggle" class="toggle on">✨ Неон: ВКЛ</button>
 
 <label>✨ Цвет неона</label>
 <input type="color" id="glow" value="#ff9f43">
 
 <label>🖼️ Картинка (URL)</label>
-<input type="text" id="image" value="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+<input type="text" id="image"
+value="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
 
 <label>📐 Скругление (px)</label>
 <input type="number" id="radius" value="22">
@@ -92,7 +94,7 @@ music = музыка
 sun = солнце
 house = дом</textarea>
 
-<button id="copy">📋 Скопировать iframe для Genially</button>
+<button id="copy" class="primary">📋 Скопировать iframe</button>
 
 <iframe id="preview" width="960" height="420"></iframe>
 
@@ -100,9 +102,21 @@ house = дом</textarea>
 <textarea id="code" readonly></textarea>
 
 <script>
+let neonEnabled = true;
+
 const preview = document.getElementById("preview");
 const codeBox = document.getElementById("code");
 const controls = document.querySelectorAll("input, textarea");
+
+document.getElementById("neonToggle").onclick = () => {
+  neonEnabled = !neonEnabled;
+  const btn = document.getElementById("neonToggle");
+  btn.textContent = neonEnabled ? "✨ Неон: ВКЛ" : "✨ Неон: ВЫКЛ";
+  btn.classList.toggle("on", neonEnabled);
+  generate();
+};
+
+controls.forEach(c => c.addEventListener("input", generate));
 
 function generate() {
 
@@ -110,7 +124,6 @@ function generate() {
   const text = textInput().value;
   const accent = accentInput().value;
   const glow = glowInput().value;
-  const neon = neonInput().checked;
   const image = imageInput().value;
   const radius = radiusInput().value;
   const fontSize = fontSizeInput().value;
@@ -124,11 +137,11 @@ function generate() {
     }
   });
 
-  const shadow = neon
+  const shadow = neonEnabled
     ? `0 0 20px ${glow}88, 0 0 40px ${glow}44, 0 0 60px ${glow}22`
     : `0 10px 30px rgba(0,0,0,.25)`;
 
-  const avatarGlow = neon ? `0 0 16px ${glow}` : `none`;
+  const avatarGlow = neonEnabled ? `0 0 16px ${glow}` : `none`;
 
   const inner = `
 <div id="FX_ROOT">
@@ -147,49 +160,41 @@ function generate() {
   justify-content:center;
   align-items:center;
   min-height:100vh;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
 }
 .card {
-  background: ${bg};
-  color: ${text};
-  padding: 22px;
-  border-radius: ${radius}px;
-  width: 360px;
-  text-align: center;
-  box-shadow: ${shadow};
-  transition: box-shadow .3s ease;
+  background:${bg};
+  color:${text};
+  padding:22px;
+  border-radius:${radius}px;
+  width:360px;
+  text-align:center;
+  box-shadow:${shadow};
 }
 .avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 14px;
-  box-shadow: ${avatarGlow};
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  object-fit:cover;
+  margin-bottom:14px;
+  box-shadow:${avatarGlow};
 }
 .card input,
 .card button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: ${radius}px;
-  border: none;
-  font-size: ${fontSize}px;
-  box-sizing: border-box;
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:${radius}px;
+  border:none;
+  font-size:${fontSize}px;
 }
-.card input {
-  background: #fff;
-}
+.card input { background:#fff; }
 .card button {
-  background: ${accent};
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
+  background:${accent};
+  color:#fff;
+  font-weight:bold;
 }
-.result {
-  margin-top: 12px;
-  font-size: ${fontSize}px;
-}
+.result { margin-top:12px; }
 </style>
 
 <script>
@@ -197,21 +202,16 @@ const DICTIONARY = ${JSON.stringify(dict)};
 const VOLUME = ${volume};
 
 document.getElementById("translate").onclick = () => {
-  const value = document.getElementById("word").value.trim().toLowerCase();
-  if (!value || value.includes(" ")) {
-    document.getElementById("result").textContent = "Введите одно слово";
-    return;
-  }
+  const v = document.getElementById("word").value.trim().toLowerCase();
   document.getElementById("result").textContent =
-    DICTIONARY[value] || "Нет перевода";
+    (!v || v.includes(" ")) ? "Введите одно слово" :
+    (DICTIONARY[v] || "Нет перевода");
 };
-
 document.getElementById("speak").onclick = () => {
-  const value = document.getElementById("word").value.trim();
-  if (!value) return;
-  const u = new SpeechSynthesisUtterance(value);
-  u.lang = "en-US";
-  u.volume = VOLUME;
+  const v = document.getElementById("word").value.trim();
+  if (!v) return;
+  const u = new SpeechSynthesisUtterance(v);
+  u.lang="en-US"; u.volume=VOLUME;
   speechSynthesis.speak(u);
 };
 <\/script>
@@ -225,7 +225,6 @@ srcdoc="${inner.replace(/"/g,'&quot;')}"></iframe>`;
   codeBox.value = iframe;
 }
 
-controls.forEach(c => c.addEventListener("input", generate));
 generate();
 
 document.getElementById("copy").onclick = () => {
@@ -237,7 +236,6 @@ function bgInput(){return document.getElementById("bg")}
 function textInput(){return document.getElementById("text")}
 function accentInput(){return document.getElementById("accent")}
 function glowInput(){return document.getElementById("glow")}
-function neonInput(){return document.getElementById("neon")}
 function imageInput(){return document.getElementById("image")}
 function radiusInput(){return document.getElementById("radius")}
 function fontSizeInput(){return document.getElementById("fontSize")}
