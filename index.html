@@ -42,6 +42,12 @@ iframe {
   height:180px;
   font-family:monospace;
 }
+.toggle {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -58,8 +64,13 @@ iframe {
 <label>🔥 Акцентный цвет (кнопки)</label>
 <input type="color" id="accent" value="#ff7a00">
 
-<label>✨ Неоновое свечение</label>
-<input type="color" id="glow" value="#ffb347">
+<div class="toggle">
+  <input type="checkbox" id="neon" checked>
+  <label for="neon">✨ Включить неоновое свечение</label>
+</div>
+
+<label>✨ Цвет неона</label>
+<input type="color" id="glow" value="#ff9f43">
 
 <label>🖼️ Картинка (URL)</label>
 <input type="text" id="image" value="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
@@ -99,6 +110,7 @@ function generate() {
   const text = textInput().value;
   const accent = accentInput().value;
   const glow = glowInput().value;
+  const neon = neonInput().checked;
   const image = imageInput().value;
   const radius = radiusInput().value;
   const fontSize = fontSizeInput().value;
@@ -111,6 +123,12 @@ function generate() {
       dict[parts[0].trim().toLowerCase()] = parts[1].trim();
     }
   });
+
+  const shadow = neon
+    ? `0 0 20px ${glow}88, 0 0 40px ${glow}44, 0 0 60px ${glow}22`
+    : `0 10px 30px rgba(0,0,0,.25)`;
+
+  const avatarGlow = neon ? `0 0 16px ${glow}` : `none`;
 
   const inner = `
 <div id="FX_ROOT">
@@ -138,9 +156,8 @@ function generate() {
   border-radius: ${radius}px;
   width: 360px;
   text-align: center;
-  box-shadow:
-    0 0 20px ${glow}66,
-    0 0 40px ${glow}33;
+  box-shadow: ${shadow};
+  transition: box-shadow .3s ease;
 }
 .avatar {
   width: 72px;
@@ -148,7 +165,7 @@ function generate() {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 14px;
-  box-shadow: 0 0 12px ${glow};
+  box-shadow: ${avatarGlow};
 }
 .card input,
 .card button {
@@ -220,6 +237,7 @@ function bgInput(){return document.getElementById("bg")}
 function textInput(){return document.getElementById("text")}
 function accentInput(){return document.getElementById("accent")}
 function glowInput(){return document.getElementById("glow")}
+function neonInput(){return document.getElementById("neon")}
 function imageInput(){return document.getElementById("image")}
 function radiusInput(){return document.getElementById("radius")}
 function fontSizeInput(){return document.getElementById("fontSize")}
