@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Genially Translator Editor</title>
+<title>Редактор переводчика для Genially</title>
 
 <style>
 body {
@@ -10,6 +10,8 @@ body {
   background: #0f0f0f;
   color: #fff;
   padding: 20px;
+  max-width: 900px;
+  margin: auto;
 }
 label {
   display: block;
@@ -34,9 +36,15 @@ button {
 }
 iframe {
   width: 100%;
-  height: 320px;
+  height: 260px;
   border: none;
   margin-top: 20px;
+  background: #222;
+}
+#code {
+  margin-top: 20px;
+  height: 140px;
+  font-family: monospace;
 }
 </style>
 </head>
@@ -60,120 +68,95 @@ iframe {
 <label>🔊 Громкость (0–1)</label>
 <input type="number" id="volume" min="0" max="1" step="0.1" value="0.8">
 
-<label>📘 Список слов (формат: en = ru)</label>
-<textarea id="dict" rows="6">
-hello = привет
+<label>📘 Список слов (en = ru)</label>
+<textarea id="dict" rows="5">hello = привет
 world = мир
-fire = огонь
-</textarea>
+fire = огонь</textarea>
 
-<button id="copy">📋 Скопировать iframe для Genially</button>
+<button id="copy">📋 Скопировать iframe</button>
 
 <iframe id="preview"></iframe>
 
+<label>📦 Сгенерированный iframe-код</label>
+<textarea id="code" readonly></textarea>
+
 <script>
-const preview = document.getElementById("preview");
 const controls = document.querySelectorAll("input, textarea");
+const preview = document.getElementById("preview");
+const codeBox = document.getElementById("code");
 
-function generateIframe(copyMode = false) {
-
-  const bg = document.getElementById("bg").value;
+function generateIframe() {
+  const bg = bg.value;
   const text = document.getElementById("text").value;
   const radius = document.getElementById("radius").value;
   const fontSize = document.getElementById("fontSize").value;
   const volume = document.getElementById("volume").value;
 
   const dict = {};
-  document.getElementById("dict").value.split("\\n").forEach(line => {
-    const parts = line.split("=");
-    if (parts.length === 2) {
-      dict[parts[0].trim().toLowerCase()] = parts[1].trim();
-    }
+  document.getElementById("dict").value.split("\n").forEach(line => {
+    const [en, ru] = line.split("=");
+    if (en && ru) dict[en.trim().toLowerCase()] = ru.trim();
   });
 
-  const iframeCode = `
-<iframe style="width:100%;height:320px;border:none;" srcdoc='
-<!doctype html>
-<html>
-<body>
-
+  const inner = `
 <div id="FX_ROOT"></div>
-
 <style>
 #FX_ROOT {
-  font-family: Arial, sans-serif;
-  background: ${bg};
-  color: ${text};
-  padding: 16px;
-  border-radius: ${radius}px;
-  font-size: ${fontSize}px;
+  font-family: Arial;
+  background:${bg};
+  color:${text};
+  padding:16px;
+  border-radius:${radius}px;
+  font-size:${fontSize}px;
 }
-#FX_ROOT input {
-  width: 100%;
-  padding: 10px;
-  border-radius: ${radius}px;
-  border: none;
+#FX_ROOT input, #FX_ROOT button {
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:${radius}px;
+  border:none;
 }
 #FX_ROOT button {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: ${radius}px;
-  border: none;
-  background: #ff6a00;
-  color: #fff;
-  cursor: pointer;
-}
-.result {
-  margin-top: 12px;
+  background:#ff6a00;
+  color:white;
+  cursor:pointer;
 }
 </style>
-
 <script>
 const DICTIONARY = ${JSON.stringify(dict)};
 const VOLUME = ${volume};
-
 const root = document.getElementById("FX_ROOT");
 root.innerHTML = \`
-<input id="word" placeholder="Type EN word">
+<input id="w" placeholder="Type EN word">
 <button id="t">Translate</button>
 <button id="s">🔊 Speak</button>
-<div class="result" id="r"></div>
+<div id="r"></div>
 \`;
-
-const input = root.querySelector("#word");
-const result = root.querySelector("#r");
-
-root.querySelector("#t").onclick = () => {
-  const w = input.value.toLowerCase().trim();
-  result.textContent = DICTIONARY[w] || "Нет перевода";
+document.getElementById("t").onclick = () => {
+  const w = document.getElementById("w").value.toLowerCase().trim();
+  document.getElementById("r").textContent = DICTIONARY[w] || "Нет перевода";
 };
-
-root.querySelector("#s").onclick = () => {
-  if (!input.value) return;
-  const u = new SpeechSynthesisUtterance(input.value);
+document.getElementById("s").onclick = () => {
+  const u = new SpeechSynthesisUtterance(document.getElementById("w").value);
   u.lang = "en-US";
   u.volume = VOLUME;
   speechSynthesis.speak(u);
 };
-</script>
-
-</body>
-</html>
-'></iframe>
+<\/script>
 `;
 
-  return copyMode ? iframeCode.trim() : iframeCode;
+  const iframe = `<iframe style="width:100%;height:260px;border:none;" srcdoc="${inner.replace(/"/g, '&quot;')}"></iframe>`;
+
+  preview.srcdoc = inner;
+  codeBox.value = iframe;
+  return iframe;
 }
 
-function updatePreview() {
-  preview.srcdoc = generateIframe();
-}
-
-controls.forEach(el => el.addEventListener("input", updatePreview));
-updatePreview();
+controls.forEach(c => c.addEventListener("input", generateIframe));
+generateIframe();
 
 document.getElementById("copy").onclick = () => {
-  navigator.clipboard.writeText(generateIframe(true));
+  navigator.clipboard.writeText(codeBox.value);
   alert("Iframe скопирован ✅");
 };
 </script>
