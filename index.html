@@ -13,39 +13,34 @@ body {
   max-width: 900px;
   margin: auto;
 }
-label {
-  display: block;
-  margin-top: 14px;
-}
+label { display:block; margin-top:14px; }
 input, textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  border-radius: 8px;
-  border: none;
-  box-sizing: border-box;
+  width:100%;
+  padding:8px;
+  margin-top:4px;
+  border-radius:8px;
+  border:none;
+  box-sizing:border-box;
 }
 button {
-  margin-top: 16px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  background: #ff6a00;
-  color: #fff;
-  font-size: 16px;
+  margin-top:16px;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  background:#ff6a00;
+  color:#fff;
+  font-size:16px;
 }
 iframe {
-  width: 100%;
-  height: 320px;
-  border: none;
-  margin-top: 20px;
-  background: #222;
+  margin-top:20px;
+  border:none;
+  background:#222;
 }
 #code {
-  margin-top: 20px;
-  height: 160px;
-  font-family: monospace;
+  margin-top:20px;
+  height:160px;
+  font-family:monospace;
 }
 </style>
 </head>
@@ -69,16 +64,16 @@ iframe {
 <label>🔊 Громкость (0–1)</label>
 <input type="number" id="volume" min="0" max="1" step="0.1" value="0.8">
 
-<label>📘 Список слов (формат: en = ru)</label>
+<label>📘 Список слов (en = ru)</label>
 <textarea id="dict" rows="5">hello = привет
 world = мир
 fire = огонь</textarea>
 
 <button id="copy">📋 Скопировать iframe для Genially</button>
 
-<iframe id="preview"></iframe>
+<iframe id="preview" width="960" height="360"></iframe>
 
-<label>📦 Сгенерированный iframe-код (вставляй в Genially)</label>
+<label>📦 iframe-код для Genially</label>
 <textarea id="code" readonly></textarea>
 
 <script>
@@ -87,74 +82,64 @@ const codeBox = document.getElementById("code");
 const controls = document.querySelectorAll("input, textarea");
 
 function generate() {
-  const bg = document.getElementById("bg").value;
-  const text = document.getElementById("text").value;
-  const radius = document.getElementById("radius").value;
-  const fontSize = document.getElementById("fontSize").value;
-  const volume = document.getElementById("volume").value;
+  const bg = bgInput().value;
+  const text = textInput().value;
+  const radius = radiusInput().value;
+  const fontSize = fontSizeInput().value;
+  const volume = volumeInput().value;
 
   const dict = {};
-  document.getElementById("dict").value.split("\\n").forEach(line => {
+  dictInput().value.split("\n").forEach(line => {
     const [en, ru] = line.split("=");
     if (en && ru) dict[en.trim().toLowerCase()] = ru.trim();
   });
 
-  /* --- КОД ВНУТРИ IFRAME (ТОЛЬКО div + style + script) --- */
   const inner = `
 <div id="FX_ROOT"></div>
 
 <style>
 #FX_ROOT {
-  font-family: Arial, sans-serif;
-  background: ${bg};
-  color: ${text};
-  padding: 16px;
-  border-radius: ${radius}px;
-  font-size: ${fontSize}px;
-  max-width: 420px;
-  margin: 40px auto;
+  font-family: Arial;
+  background:${bg};
+  color:${text};
+  padding:16px;
+  border-radius:${radius}px;
+  font-size:${fontSize}px;
+  max-width:420px;
+  margin:40px auto;
 }
 #FX_ROOT input,
 #FX_ROOT button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: ${radius}px;
-  border: none;
-  box-sizing: border-box;
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:${radius}px;
+  border:none;
 }
 #FX_ROOT button {
-  background: #ff6a00;
-  color: #fff;
-  cursor: pointer;
-}
-#FX_ROOT .result {
-  margin-top: 10px;
+  background:#ff6a00;
+  color:#fff;
+  cursor:pointer;
 }
 </style>
 
 <script>
 const DICTIONARY = ${JSON.stringify(dict)};
 const VOLUME = ${volume};
-
 const root = document.getElementById("FX_ROOT");
 root.innerHTML = \`
 <input id="w" placeholder="Type EN word">
 <button id="t">Translate</button>
 <button id="s">🔊 Speak</button>
-<div class="result" id="r"></div>
+<div id="r"></div>
 \`;
-
 document.getElementById("t").onclick = () => {
   const w = document.getElementById("w").value.toLowerCase().trim();
   document.getElementById("r").textContent =
     DICTIONARY[w] || "Нет перевода";
 };
-
 document.getElementById("s").onclick = () => {
-  const word = document.getElementById("w").value;
-  if (!word) return;
-  const u = new SpeechSynthesisUtterance(word);
+  const u = new SpeechSynthesisUtterance(document.getElementById("w").value);
   u.lang = "en-US";
   u.volume = VOLUME;
   speechSynthesis.speak(u);
@@ -162,12 +147,14 @@ document.getElementById("s").onclick = () => {
 <\/script>
 `;
 
-  /* --- ВАЖНО: iframe ВЫСОКИЙ (чтобы Genially не сжимал сцену) --- */
-  const iframeCode =
-`<iframe style="width:100%;height:700px;border:none;" srcdoc="${inner.replace(/"/g, '&quot;')}"></iframe>`;
+  const iframe =
+`<iframe
+  style="width:960px;height:700px;max-width:100%;border:none;"
+  srcdoc="${inner.replace(/"/g,'&quot;')}"
+></iframe>`;
 
   preview.srcdoc = inner;
-  codeBox.value = iframeCode;
+  codeBox.value = iframe;
 }
 
 controls.forEach(c => c.addEventListener("input", generate));
@@ -175,8 +162,15 @@ generate();
 
 document.getElementById("copy").onclick = () => {
   navigator.clipboard.writeText(codeBox.value);
-  alert("Iframe скопирован ✅");
+  alert("iframe скопирован ✅");
 };
+
+function bgInput(){return document.getElementById("bg")}
+function textInput(){return document.getElementById("text")}
+function radiusInput(){return document.getElementById("radius")}
+function fontSizeInput(){return document.getElementById("fontSize")}
+function volumeInput(){return document.getElementById("volume")}
+function dictInput(){return document.getElementById("dict")}
 </script>
 
 </body>
