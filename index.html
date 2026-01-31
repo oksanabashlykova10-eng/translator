@@ -23,10 +23,11 @@ input, textarea {
   margin-top: 4px;
   border-radius: 8px;
   border: none;
+  box-sizing: border-box;
 }
 button {
   margin-top: 16px;
-  padding: 10px;
+  padding: 12px;
   border-radius: 10px;
   border: none;
   cursor: pointer;
@@ -36,14 +37,14 @@ button {
 }
 iframe {
   width: 100%;
-  height: 260px;
+  height: 320px;
   border: none;
   margin-top: 20px;
   background: #222;
 }
 #code {
   margin-top: 20px;
-  height: 140px;
+  height: 160px;
   font-family: monospace;
 }
 </style>
@@ -68,76 +69,92 @@ iframe {
 <label>🔊 Громкость (0–1)</label>
 <input type="number" id="volume" min="0" max="1" step="0.1" value="0.8">
 
-<label>📘 Список слов (en = ru)</label>
+<label>📘 Список слов (формат: en = ru)</label>
 <textarea id="dict" rows="5">hello = привет
 world = мир
 fire = огонь</textarea>
 
-<button id="copy">📋 Скопировать iframe</button>
+<button id="copy">📋 Скопировать iframe для Genially</button>
 
 <iframe id="preview"></iframe>
 
-<label>📦 Сгенерированный iframe-код</label>
+<label>📦 Сгенерированный iframe-код (вставляй в Genially)</label>
 <textarea id="code" readonly></textarea>
 
 <script>
-const controls = document.querySelectorAll("input, textarea");
 const preview = document.getElementById("preview");
 const codeBox = document.getElementById("code");
+const controls = document.querySelectorAll("input, textarea");
 
-function generateIframe() {
-  const bg = bg.value;
+function generate() {
+  const bg = document.getElementById("bg").value;
   const text = document.getElementById("text").value;
   const radius = document.getElementById("radius").value;
   const fontSize = document.getElementById("fontSize").value;
   const volume = document.getElementById("volume").value;
 
   const dict = {};
-  document.getElementById("dict").value.split("\n").forEach(line => {
+  document.getElementById("dict").value.split("\\n").forEach(line => {
     const [en, ru] = line.split("=");
     if (en && ru) dict[en.trim().toLowerCase()] = ru.trim();
   });
 
+  /* --- КОД ВНУТРИ IFRAME (ТОЛЬКО div + style + script) --- */
   const inner = `
 <div id="FX_ROOT"></div>
+
 <style>
 #FX_ROOT {
-  font-family: Arial;
-  background:${bg};
-  color:${text};
-  padding:16px;
-  border-radius:${radius}px;
-  font-size:${fontSize}px;
+  font-family: Arial, sans-serif;
+  background: ${bg};
+  color: ${text};
+  padding: 16px;
+  border-radius: ${radius}px;
+  font-size: ${fontSize}px;
+  max-width: 420px;
+  margin: 40px auto;
 }
-#FX_ROOT input, #FX_ROOT button {
-  width:100%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:${radius}px;
-  border:none;
+#FX_ROOT input,
+#FX_ROOT button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: ${radius}px;
+  border: none;
+  box-sizing: border-box;
 }
 #FX_ROOT button {
-  background:#ff6a00;
-  color:white;
-  cursor:pointer;
+  background: #ff6a00;
+  color: #fff;
+  cursor: pointer;
+}
+#FX_ROOT .result {
+  margin-top: 10px;
 }
 </style>
+
 <script>
 const DICTIONARY = ${JSON.stringify(dict)};
 const VOLUME = ${volume};
+
 const root = document.getElementById("FX_ROOT");
 root.innerHTML = \`
 <input id="w" placeholder="Type EN word">
 <button id="t">Translate</button>
 <button id="s">🔊 Speak</button>
-<div id="r"></div>
+<div class="result" id="r"></div>
 \`;
+
 document.getElementById("t").onclick = () => {
   const w = document.getElementById("w").value.toLowerCase().trim();
-  document.getElementById("r").textContent = DICTIONARY[w] || "Нет перевода";
+  document.getElementById("r").textContent =
+    DICTIONARY[w] || "Нет перевода";
 };
+
 document.getElementById("s").onclick = () => {
-  const u = new SpeechSynthesisUtterance(document.getElementById("w").value);
+  const word = document.getElementById("w").value;
+  if (!word) return;
+  const u = new SpeechSynthesisUtterance(word);
   u.lang = "en-US";
   u.volume = VOLUME;
   speechSynthesis.speak(u);
@@ -145,15 +162,16 @@ document.getElementById("s").onclick = () => {
 <\/script>
 `;
 
-  const iframe = `<iframe style="width:100%;height:260px;border:none;" srcdoc="${inner.replace(/"/g, '&quot;')}"></iframe>`;
+  /* --- ВАЖНО: iframe ВЫСОКИЙ (чтобы Genially не сжимал сцену) --- */
+  const iframeCode =
+`<iframe style="width:100%;height:700px;border:none;" srcdoc="${inner.replace(/"/g, '&quot;')}"></iframe>`;
 
   preview.srcdoc = inner;
-  codeBox.value = iframe;
-  return iframe;
+  codeBox.value = iframeCode;
 }
 
-controls.forEach(c => c.addEventListener("input", generateIframe));
-generateIframe();
+controls.forEach(c => c.addEventListener("input", generate));
+generate();
 
 document.getElementById("copy").onclick = () => {
   navigator.clipboard.writeText(codeBox.value);
