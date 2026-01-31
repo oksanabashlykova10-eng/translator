@@ -13,59 +13,59 @@ body {
   max-width: 900px;
   margin: auto;
 }
-label {
-  display: block;
-  margin-top: 14px;
-}
+label { display:block; margin-top:14px; }
 input, textarea {
-  width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  border-radius: 8px;
-  border: none;
-  box-sizing: border-box;
+  width:100%;
+  padding:8px;
+  margin-top:4px;
+  border-radius:8px;
+  border:none;
+  box-sizing:border-box;
 }
 button {
-  margin-top: 16px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  background: #ff6a00;
-  color: #fff;
-  font-size: 16px;
+  margin-top:16px;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  background:#ff6a00;
+  color:#fff;
+  font-size:16px;
 }
 iframe {
-  margin-top: 20px;
-  border: none;
-  background: #222;
+  margin-top:20px;
+  border:none;
+  background:#222;
 }
 #code {
-  margin-top: 20px;
-  height: 180px;
-  font-family: monospace;
+  margin-top:20px;
+  height:180px;
+  font-family:monospace;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🧩 Редактор переводчика для Genially</h2>
+<h2>🎧 Редактор переводчика для Genially</h2>
 
 <label>🎨 Цвет карточки</label>
-<input type="color" id="bg" value="#e7c1bd">
+<input type="color" id="bg" value="#f2f0c9">
 
 <label>🎨 Цвет текста</label>
 <input type="color" id="text" value="#000000">
 
-<label>🎨 Акцент (кнопки)</label>
+<label>🔥 Акцентный цвет (кнопки)</label>
 <input type="color" id="accent" value="#ff7a00">
+
+<label>✨ Неоновое свечение</label>
+<input type="color" id="glow" value="#ffb347">
 
 <label>🖼️ Картинка (URL)</label>
 <input type="text" id="image" value="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
 
 <label>📐 Скругление (px)</label>
-<input type="number" id="radius" value="20">
+<input type="number" id="radius" value="22">
 
 <label>🔠 Размер шрифта (px)</label>
 <input type="number" id="fontSize" value="18">
@@ -73,19 +73,19 @@ iframe {
 <label>🔊 Громкость (0–1)</label>
 <input type="number" id="volume" min="0" max="1" step="0.1" value="0.8">
 
-<label>📘 Список слов (формат: en = ru)</label>
-<textarea id="dict" rows="6">hello = привет
-world = мир
-friend = друг
+<label>📘 Список слов (en = ru)</label>
+<textarea id="dict" rows="6">water = вода
+fire = огонь
 book = книга
 music = музыка
-language = язык</textarea>
+sun = солнце
+house = дом</textarea>
 
 <button id="copy">📋 Скопировать iframe для Genially</button>
 
-<iframe id="preview" width="960" height="400"></iframe>
+<iframe id="preview" width="960" height="420"></iframe>
 
-<label>📦 iframe-код (вставляй в Genially)</label>
+<label>📦 iframe-код</label>
 <textarea id="code" readonly></textarea>
 
 <script>
@@ -98,12 +98,12 @@ function generate() {
   const bg = bgInput().value;
   const text = textInput().value;
   const accent = accentInput().value;
+  const glow = glowInput().value;
   const image = imageInput().value;
   const radius = radiusInput().value;
   const fontSize = fontSizeInput().value;
   const volume = volumeInput().value;
 
-  // ✅ ПРАВИЛЬНЫЙ парсинг словаря
   const dict = {};
   dictInput().value.split("\n").forEach(line => {
     const parts = line.split("=");
@@ -116,7 +116,7 @@ function generate() {
 <div id="FX_ROOT">
   <div class="card">
     <img class="avatar" src="${image}">
-    <input id="word" placeholder="Type ONE English word">
+    <input id="word" placeholder="Type one English word">
     <button id="translate">Translate</button>
     <button id="speak">🔊 Speak</button>
     <div class="result" id="result"></div>
@@ -134,36 +134,43 @@ function generate() {
 .card {
   background: ${bg};
   color: ${text};
-  padding: 20px;
+  padding: 22px;
   border-radius: ${radius}px;
   width: 360px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.3);
   text-align: center;
+  box-shadow:
+    0 0 20px ${glow}66,
+    0 0 40px ${glow}33;
 }
 .avatar {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  margin-bottom: 12px;
+  object-fit: cover;
+  margin-bottom: 14px;
+  box-shadow: 0 0 12px ${glow};
 }
 .card input,
 .card button {
   width: 100%;
-  padding: 10px;
-  margin-top: 8px;
+  padding: 12px;
+  margin-top: 10px;
   border-radius: ${radius}px;
   border: none;
-  box-sizing: border-box;
   font-size: ${fontSize}px;
+  box-sizing: border-box;
+}
+.card input {
+  background: #fff;
 }
 .card button {
   background: ${accent};
-  color: white;
-  cursor: pointer;
+  color: #fff;
   font-weight: bold;
+  cursor: pointer;
 }
 .result {
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: ${fontSize}px;
 }
 </style>
@@ -174,12 +181,10 @@ const VOLUME = ${volume};
 
 document.getElementById("translate").onclick = () => {
   const value = document.getElementById("word").value.trim().toLowerCase();
-
   if (!value || value.includes(" ")) {
     document.getElementById("result").textContent = "Введите одно слово";
     return;
   }
-
   document.getElementById("result").textContent =
     DICTIONARY[value] || "Нет перевода";
 };
@@ -196,7 +201,7 @@ document.getElementById("speak").onclick = () => {
 `;
 
   const iframe =
-`<iframe style="width:960px;height:700px;max-width:100%;border:none;"
+`<iframe style="width:960px;height:720px;max-width:100%;border:none;"
 srcdoc="${inner.replace(/"/g,'&quot;')}"></iframe>`;
 
   preview.srcdoc = inner;
@@ -214,6 +219,7 @@ document.getElementById("copy").onclick = () => {
 function bgInput(){return document.getElementById("bg")}
 function textInput(){return document.getElementById("text")}
 function accentInput(){return document.getElementById("accent")}
+function glowInput(){return document.getElementById("glow")}
 function imageInput(){return document.getElementById("image")}
 function radiusInput(){return document.getElementById("radius")}
 function fontSizeInput(){return document.getElementById("fontSize")}
