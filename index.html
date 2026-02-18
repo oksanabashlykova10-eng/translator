@@ -1,247 +1,1747 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Редактор переводчика для Genially</title>
-
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Machine Game Editor</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0f0f0f;
-  color: #fff;
-  padding: 20px;
-  max-width: 900px;
-  margin: auto;
-}
-label { display:block; margin-top:14px; }
-input, textarea {
-  width:100%;
-  padding:8px;
-  margin-top:4px;
-  border-radius:8px;
-  border:none;
-  box-sizing:border-box;
-}
-button {
-  margin-top:16px;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
-  font-size:16px;
-}
-button.primary {
-  background:#ff6a00;
-  color:#fff;
-}
-button.toggle {
-  background:#333;
-  color:#fff;
-  margin-top:10px;
-}
-button.toggle.on {
-  background:#ff9f43;
-}
-iframe {
-  margin-top:20px;
-  border:none;
-  background:#222;
-}
-#code {
-  margin-top:20px;
-  height:180px;
-  font-family:monospace;
-}
+  :root{
+    --bg:#070A0F;
+    --panel:rgba(10,14,22,.72);
+    --panel2:rgba(10,14,22,.50);
+    --stroke:rgba(0,255,213,.22);
+    --ui:#00ffd5;
+    --txt:#eaffff;
+    --muted:rgba(234,255,255,.75);
+    --danger:#ff2b2b;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--txt); overflow:hidden;}
+  *{box-sizing:border-box;}
+  a{color:var(--ui)}
+  .wrap{position:relative; height:100%; display:grid; grid-template-columns: 420px 1fr; gap:14px; padding:14px;}
+  /* Stars background */
+  canvas#stars{position:fixed; inset:0; z-index:0;}
+  .pane{position:relative; z-index:1; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(10,14,22,.78), rgba(10,14,22,.55)); border-radius:18px; box-shadow:0 0 30px rgba(0,255,213,.08); overflow:hidden;}
+  .left{display:flex; flex-direction:column;}
+  .hdr{
+    padding:12px 14px;
+    border-bottom:1px solid rgba(0,255,213,.14);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .brand{display:flex; align-items:center; gap:12px; min-width:0;}
+  .brandLogo{
+    width:46px; height:46px; flex:0 0 46px;
+    border-radius:14px;
+    background:
+      url('https://img.genially.com/67961b32a116fb001568a75e/673752a5-8d4d-40d1-9b5f-f04ebd91a27c.png')
+      center/contain no-repeat;
+    box-shadow:
+      0 0 0 2px rgba(0,255,213,.55),
+      0 0 28px rgba(0,255,213,.18),
+      0 0 12px rgba(0,255,213,.14) inset;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.45));
+  }
+  .brandText{
+    display:flex; flex-direction:column; gap:2px; min-width:0;
+  }
+  .brandText .t1{
+    font-weight:900; letter-spacing:.2px; font-size:13px; color:var(--txt);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .brandText .t2{
+    font-size:11px; color:rgba(234,255,255,.62);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .badge{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,255,213,.25); background:rgba(0,255,213,.06); color:var(--muted)}
+  .tabs{display:flex; flex-wrap:wrap; gap:8px; padding:10px 14px;}
+  .tabBtn{
+    border:1px solid rgba(0,255,213,.18);
+    background:rgba(0,0,0,.25);
+    color:var(--muted);
+    padding:8px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:800;
+    font-size:12px;
+    transition:.15s;
+  }
+  .tabBtn.active{
+    color:var(--txt);
+    border-color:rgba(0,255,213,.55);
+    box-shadow:0 0 18px rgba(0,255,213,.10);
+    background:rgba(0,255,213,.06);
+  }
+  .content{padding:0 14px 14px; overflow:auto; height:100%;}
+  .section{display:none; padding-bottom:18px;}
+  .section.active{display:block;}
+  .card{
+    border:1px solid rgba(0,255,213,.14);
+    background:rgba(0,0,0,.18);
+    border-radius:16px;
+    padding:12px;
+    margin-top:10px;
+  }
+  .card h3{margin:0 0 8px; font-size:13px; color:var(--txt);}
+  .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+  .row3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;}
+  label{display:block; font-size:12px; color:var(--muted); margin:0 0 6px;}
+  input[type="text"], input[type="number"], textarea, select, input[type="color"]{
+    width:100%; border-radius:12px; border:1px solid rgba(0,255,213,.16);
+    background:rgba(8,10,16,.55); color:var(--txt);
+    padding:10px 10px; outline:none;
+  }
+  textarea{min-height:160px; resize:vertical; line-height:1.25;}
+  .help{font-size:12px; color:rgba(234,255,255,.70); margin-top:6px;}
+  .mini{font-size:11px; color:rgba(234,255,255,.62);}
+  .btnRow{display:flex; gap:10px; flex-wrap:wrap; padding:10px 14px 14px; border-top:1px solid rgba(0,255,213,.14);}
+  .btn{
+    border:none; cursor:pointer; border-radius:14px; padding:10px 14px; font-weight:900;
+    background:rgba(0,0,0,.25); color:var(--txt); border:1px solid rgba(0,255,213,.28);
+    box-shadow:0 0 18px rgba(0,255,213,.08);
+    transition:.15s;
+  }
+  .btn:hover{transform:translateY(-1px); border-color:rgba(0,255,213,.65); box-shadow:0 0 26px rgba(0,255,213,.12);}
+  .btn.primary{background:rgba(0,255,213,.10);}
+  .btn.danger{border-color:rgba(255,43,43,.45); box-shadow:0 0 18px rgba(255,43,43,.10);}
+  .btn.danger:hover{border-color:rgba(255,43,43,.85); box-shadow:0 0 26px rgba(255,43,43,.14);}
+  .right{display:flex; flex-direction:column;}
+  .previewTop{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-bottom:1px solid rgba(0,255,213,.14);}
+  .previewTop .title{font-weight:900; font-size:13px; color:var(--muted);}
+  .previewTop .pill{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(0,255,213,.25); background:rgba(0,255,213,.06);}
+  iframe#preview{flex:1; width:100%; border:0; background:transparent;}
+  .twoLine{display:grid; grid-template-columns: 1fr; gap:8px;}
+  .split{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .switch{display:flex; gap:10px; align-items:center; padding:10px; border:1px solid rgba(0,255,213,.14); border-radius:14px; background:rgba(0,0,0,.18);}
+  .switch input{transform:scale(1.15);}
+  .fileRow{display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:end;}
+
+  /* footer */
+  .footer{
+    padding:8px 14px 12px;
+    color:rgba(234,255,255,.55);
+    font-size:11px;
+    border-top:1px solid rgba(0,255,213,.10);
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .footer .copy{white-space:nowrap;}
 </style>
 </head>
-
 <body>
+<canvas id="stars"></canvas>
 
-<h2>🎧 Редактор переводчика для Genially</h2>
+<div class="wrap">
+  <!-- LEFT -->
+  <div class="pane left">
+    <div class="hdr">
+      <div class="brand">
+        <div class="brandLogo" aria-label="English Bootcamp logo"></div>
+        <div class="brandText">
+          <div class="t1">Machine Game Editor by English Bootcamp</div>
+          <div class="t2">Настройка → предпросмотр → копирование iframe</div>
+        </div>
+      </div>
+      <div class="badge">1 список / 10 заданий</div>
+    </div>
 
-<label>🎨 Цвет карточки</label>
-<input type="color" id="bg" value="#f2f0c9">
+    <div class="tabs" id="tabs">
+      <button class="tabBtn active" data-tab="tasks">Задания</button>
+      <button class="tabBtn" data-tab="look">Внешний вид</button>
+      <button class="tabBtn" data-tab="gears">Шестерёнки</button>
+      <button class="tabBtn" data-tab="screens">Заставки</button>
+      <button class="tabBtn" data-tab="audio">Аудио</button>
+    </div>
 
-<label>🎨 Цвет текста</label>
-<input type="color" id="text" value="#000000">
+    <div class="content">
+      <!-- TASKS -->
+      <div class="section active" id="sec_tasks">
+        <div class="card">
+          <h3>10 заданий (формат: вопрос | правильный | неправильный | неправильный)</h3>
+          <label>Список заданий (10 строк)</label>
+          <textarea id="tasksTA"></textarea>
+          <div class="help">Пример строки: <b>I ___ running. | am | is | are</b> (первый ответ = правильный)</div>
+          <div class="mini">Ответы в игре перемешиваются автоматически.</div>
+        </div>
 
-<label>🔥 Акцентный цвет (кнопки)</label>
-<input type="color" id="accent" value="#ff7a00">
+        <div class="card">
+          <h3>Базовые параметры</h3>
+          <div class="row">
+            <div>
+              <label>Таймер (секунд на вопрос)</label>
+              <input id="timePerQ" type="number" min="3" max="60" value="10"/>
+            </div>
+            <div>
+              <label>Количество жизней (сердца)</label>
+              <input id="lives" type="number" min="1" max="10" value="3"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Сколько правильных ответов для победы</label>
+              <input id="targetScore" type="number" min="1" max="50" value="10"/>
+            </div>
+            <div>
+              <label>Красный таймер при (сек)</label>
+              <input id="dangerAt" type="number" min="1" max="30" value="5"/>
+            </div>
+          </div>
+        </div>
 
-<button id="neonToggle" class="toggle on">✨ Неон: ВКЛ</button>
+        <div class="card">
+          <h3>Шрифты: вопросы и ответы</h3>
+          <div class="row">
+            <div>
+              <label>Вопрос — шрифт</label>
+              <select id="qFont">
+                <option value="Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" selected>Arial / System</option>
+                <option value="'Comic Sans MS','Comic Sans',cursive">Comic Sans MS (комикс)</option>
+                <option value="'Trebuchet MS', Trebuchet, Arial, sans-serif">Trebuchet MS</option>
+                <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+              </select>
+            </div>
+            <div>
+              <label>Вопрос — размер (px)</label>
+              <input id="qFontSize" type="number" min="12" max="48" value="22"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Вопрос — цвет</label>
+              <input id="qColor" type="color" value="#eaffff"/>
+            </div>
+            <div class="mini" style="align-self:end;">Панель вопроса остаётся картинкой (меняется во вкладке “Внешний вид”).</div>
+          </div>
 
-<label>✨ Цвет неона</label>
-<input type="color" id="glow" value="#ff9f43">
+          <hr style="border:none;border-top:1px solid rgba(0,255,213,.12);margin:12px 0;">
 
-<label>🖼️ Картинка (URL)</label>
-<input type="text" id="image"
-value="https://cdn-icons-png.flaticon.com/512/4712/4712109.png">
+          <div class="row">
+            <div>
+              <label>Ответы — шрифт</label>
+              <select id="aFont">
+                <option value="Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" selected>Arial / System</option>
+                <option value="'Comic Sans MS','Comic Sans',cursive">Comic Sans MS (комикс)</option>
+                <option value="'Trebuchet MS', Trebuchet, Arial, sans-serif">Trebuchet MS</option>
+                <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+              </select>
+            </div>
+            <div>
+              <label>Ответы — размер (px)</label>
+              <input id="aFontSize" type="number" min="12" max="40" value="18"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Ответы — цвет</label>
+              <input id="aColor" type="color" value="#eaffff"/>
+            </div>
+            <div></div>
+          </div>
+        </div>
+      </div>
 
-<label>📐 Скругление (px)</label>
-<input type="number" id="radius" value="22">
+      <!-- LOOK -->
+      <div class="section" id="sec_look">
+        <div class="card">
+          <h3>Цвета и неон</h3>
+          <div class="row">
+            <div>
+              <label>Неон включен</label>
+              <div class="switch">
+                <input id="neonOn" type="checkbox" checked>
+                <div>Вкл/выкл неон</div>
+              </div>
+            </div>
+            <div>
+              <label>Цвет неона (ui)</label>
+              <input id="uiColor" type="color" value="#00ffd5"/>
+            </div>
+          </div>
+        </div>
 
-<label>🔠 Размер шрифта (px)</label>
-<input type="number" id="fontSize" value="18">
+        <div class="card">
+          <h3>Фон игры</h3>
+          <div class="row">
+            <div>
+              <label>Режим фона</label>
+              <select id="bgMode">
+                <option value="url" selected>URL картинки</option>
+                <option value="upload">Загрузить свою картинку</option>
+                <option value="color">Цвет (однотонный)</option>
+                <option value="transparent">Прозрачный фон</option>
+              </select>
+              <div class="mini">“Цвет” — это однотонная заливка.</div>
+            </div>
+            <div>
+              <label>Цвет фона (для режима “Цвет”)</label>
+              <input id="bgColor" type="color" value="#000000"/>
+            </div>
+          </div>
 
-<label>🔊 Громкость (0–1)</label>
-<input type="number" id="volume" min="0" max="1" step="0.1" value="0.8">
+          <div class="row">
+            <div class="fileRow">
+              <div>
+                <label>URL фона (если выбран URL)</label>
+                <input id="bgUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/d58b1f28-a8e9-4bdf-93d2-0e9c18b8588c.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="bgFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+            <div class="mini" style="align-self:end;">Если выбран “прозрачный”, картинка не используется.</div>
+          </div>
+        </div>
 
-<label>📘 Список слов (en = ru)</label>
-<textarea id="dict" rows="6">water = вода
-fire = огонь
-book = книга
-music = музыка
-sun = солнце
-house = дом</textarea>
+        <div class="card">
+          <h3>Иконки/картинки (URL или загрузка)</h3>
+          <div class="row">
+            <div class="fileRow">
+              <div>
+                <label>Сердечко (URL)</label>
+                <input id="heartUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/38831aeb-9e51-4c42-9ee7-e7492d707a63.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="heartFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+            <div class="fileRow">
+              <div>
+                <label>Иконка таймера (URL)</label>
+                <input id="timerUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/51ad5890-ed47-44ef-9748-6c0a95de0bba.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="timerFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+          </div>
 
-<button id="copy" class="primary">📋 Скопировать iframe</button>
+          <div class="row">
+            <div class="fileRow">
+              <div>
+                <label>Иконка “маркер прогресса” (URL)</label>
+                <input id="markerUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/7bff9826-27f1-485e-81a3-e058cd1dab2b.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="markerFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+            <div class="fileRow">
+              <div>
+                <label>Панель вопроса (URL)</label>
+                <input id="qPanelUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/980890bf-3962-4551-8dd2-c399de0accb4.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="qPanelFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+          </div>
 
-<iframe id="preview" width="960" height="420"></iframe>
+          <div class="row">
+            <div class="fileRow">
+              <div>
+                <label>Картинка шестерёнки (URL)</label>
+                <input id="gearUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/7bff9826-27f1-485e-81a3-e058cd1dab2b.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="gearFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+            <div class="fileRow">
+              <div>
+                <label>Центральная шестерня (URL)</label>
+                <input id="centerUrl" type="text" value="https://img.genially.com/67961b32a116fb001568a75e/ba926358-67f4-49a7-913a-84f3df036388.png"/>
+              </div>
+              <div>
+                <label>Файл</label>
+                <input id="centerFile" type="file" accept="image/*"/>
+              </div>
+            </div>
+          </div>
 
-<label>📦 iframe-код</label>
-<textarea id="code" readonly></textarea>
+          <div class="mini">Загрузка файла заменяет URL (встраивается как dataURL прямо в игру).</div>
+        </div>
 
-<script>
-let neonEnabled = true;
+        <div class="card">
+          <h3>Автообновление превью</h3>
+          <div class="switch">
+            <input id="autoUpdate" type="checkbox" checked>
+            <div>Автообновление превью при изменениях</div>
+          </div>
+        </div>
+      </div>
 
-const preview = document.getElementById("preview");
-const codeBox = document.getElementById("code");
-const controls = document.querySelectorAll("input, textarea");
+      <!-- GEARS -->
+      <div class="section" id="sec_gears">
+        <div class="card">
+          <h3>Шестерёнки</h3>
+          <div class="row">
+            <div>
+              <label>Количество шестерёнок</label>
+              <input id="gearCount" type="number" min="2" max="5" value="3"/>
+            </div>
+            <div>
+              <label>Вращение вокруг своей оси</label>
+              <div class="switch">
+                <input id="spinSelf" type="checkbox" checked>
+                <div>Вкл/выкл</div>
+              </div>
+            </div>
+          </div>
 
-document.getElementById("neonToggle").onclick = () => {
-  neonEnabled = !neonEnabled;
-  const btn = document.getElementById("neonToggle");
-  btn.textContent = neonEnabled ? "✨ Неон: ВКЛ" : "✨ Неон: ВЫКЛ";
-  btn.classList.toggle("on", neonEnabled);
-  generate();
-};
+          <div class="row">
+            <div>
+              <label>Скорость орбиты (вокруг центра)</label>
+              <input id="orbitSpeed" type="number" min="0.1" max="3" step="0.05" value="0.75"/>
+              <div class="mini">Всегда включена (по ТЗ).</div>
+            </div>
+            <div>
+              <label>Скорость “самовращения”</label>
+              <input id="spinSpeed" type="number" min="0" max="3" step="0.05" value="1"/>
+            </div>
+          </div>
 
-controls.forEach(c => c.addEventListener("input", generate));
+          <div class="row3">
+            <div>
+              <label>Подъём центра (px)</label>
+              <input id="centerLift" type="number" min="-200" max="200" value="49"/>
+            </div>
+            <div>
+              <label>Зазор шестерёнок (px)</label>
+              <input id="gearGap" type="number" min="0" max="40" value="5"/>
+            </div>
+            <div>
+              <label>Коэф. радиуса K</label>
+              <input id="orbitK" type="number" min="0.6" max="1.2" step="0.01" value="0.80"/>
+            </div>
+          </div>
+        </div>
+      </div>
 
-function generate() {
+      <!-- SCREENS -->
+      <div class="section" id="sec_screens">
+        <div class="card">
+          <h3>Тексты заставок</h3>
+          <div class="row">
+            <div>
+              <label>Название игры (title)</label>
+              <input id="gameTitle" type="text" value="Heart of the Stone Machine"/>
+            </div>
+            <div>
+              <label>Текст на кнопке Start</label>
+              <input id="startBtnText" type="text" value="START"/>
+            </div>
+          </div>
 
-  const bg = bgInput().value;
-  const text = textInput().value;
-  const accent = accentInput().value;
-  const glow = glowInput().value;
-  const image = imageInput().value;
-  const radius = radiusInput().value;
-  const fontSize = fontSizeInput().value;
-  const volume = volumeInput().value;
+          <div class="row">
+            <div>
+              <label>Старт: заголовок</label>
+              <input id="startTitle" type="text" value="Heart of the Stone Machine"/>
+            </div>
+            <div>
+              <label>Старт: описание</label>
+              <input id="startText" type="text" value="Start the stone mechanism. Choose the correct gear and fill all 10 markers before time runs out."/>
+            </div>
+          </div>
 
-  const dict = {};
-  dictInput().value.split("\n").forEach(line => {
-    const parts = line.split("=");
-    if (parts.length === 2) {
-      dict[parts[0].trim().toLowerCase()] = parts[1].trim();
-    }
-  });
+          <div class="row">
+            <div>
+              <label>Win: заголовок</label>
+              <input id="winTitle" type="text" value="You Win!"/>
+            </div>
+            <div>
+              <label>Win: текст</label>
+              <input id="winText" type="text" value="The stone machine awakens. Well done!"/>
+            </div>
+          </div>
 
-  const shadow = neonEnabled
-    ? `0 0 20px ${glow}88, 0 0 40px ${glow}44, 0 0 60px ${glow}22`
-    : `0 10px 30px rgba(0,0,0,.25)`;
+          <div class="row">
+            <div>
+              <label>Time out: заголовок</label>
+              <input id="lostTitle" type="text" value="You Lost!"/>
+            </div>
+            <div>
+              <label>Time out: текст</label>
+              <input id="lostText" type="text" value="Time has stopped the mechanism."/>
+            </div>
+          </div>
 
-  const avatarGlow = neonEnabled ? `0 0 16px ${glow}` : `none`;
+          <div class="row">
+            <div>
+              <label>Game Over: заголовок</label>
+              <input id="overTitle" type="text" value="Game Over"/>
+            </div>
+            <div>
+              <label>Game Over: текст</label>
+              <input id="overText" type="text" value="No lives left. Try again!"/>
+            </div>
+          </div>
+        </div>
 
-  const inner = `
-<div id="FX_ROOT">
-  <div class="card">
-    <img class="avatar" src="${image}">
-    <input id="word" placeholder="Type one English word">
-    <button id="translate">Translate</button>
-    <button id="speak">🔊 Speak</button>
-    <div class="result" id="result"></div>
+        <div class="card">
+          <h3>Шрифты заставок (отдельно title и текст)</h3>
+          <div class="row">
+            <div>
+              <label>Title — шрифт</label>
+              <select id="ovTitleFont">
+                <option value="Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" selected>Arial / System</option>
+                <option value="'Comic Sans MS','Comic Sans',cursive">Comic Sans MS (комикс)</option>
+                <option value="'Trebuchet MS', Trebuchet, Arial, sans-serif">Trebuchet MS</option>
+                <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+              </select>
+            </div>
+            <div>
+              <label>Title — размер (px)</label>
+              <input id="ovTitleSize" type="number" min="18" max="72" value="52"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Title — цвет</label>
+              <input id="ovTitleColor" type="color" value="#eaffff"/>
+            </div>
+            <div></div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid rgba(0,255,213,.12);margin:12px 0;">
+
+          <div class="row">
+            <div>
+              <label>Текст — шрифт</label>
+              <select id="ovTextFont">
+                <option value="Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" selected>Arial / System</option>
+                <option value="'Comic Sans MS','Comic Sans',cursive">Comic Sans MS (комикс)</option>
+                <option value="'Trebuchet MS', Trebuchet, Arial, sans-serif">Trebuchet MS</option>
+                <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+              </select>
+            </div>
+            <div>
+              <label>Текст — размер (px)</label>
+              <input id="ovTextSize" type="number" min="12" max="32" value="18"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Текст — цвет</label>
+              <input id="ovTextColor" type="color" value="#eaffff"/>
+            </div>
+            <div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Фон заставок</h3>
+          <div class="row">
+            <div>
+              <label>Цвет фона оверлея</label>
+              <input id="overlayBg" type="color" value="#000000"/>
+            </div>
+            <div>
+              <label>Прозрачность (0..1)</label>
+              <input id="overlayAlpha" type="number" min="0" max="1" step="0.01" value="0.58"/>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Поднять карточку (vh)</label>
+              <input id="overlayLiftVh" type="number" min="-20" max="20" step="0.5" value="-4"/>
+              <div class="mini">Если в Genially чуть ниже/выше.</div>
+            </div>
+            <div>
+              <label>Кнопка неон при hover</label>
+              <div class="switch">
+                <input id="btnNeonHover" type="checkbox" checked>
+                <div>Вкл</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIO -->
+      <div class="section" id="sec_audio">
+        <div class="card">
+          <h3>Музыка</h3>
+          <div class="row">
+            <div>
+              <label>Файл музыки (mp3)</label>
+              <input id="musicFile" type="file" accept="audio/mpeg,audio/mp3"/>
+              <div class="mini">Музыка встраивается как dataURL (работает в Genially).</div>
+            </div>
+            <div>
+              <label>Громкость музыки (0..1)</label>
+              <input id="musicVol" type="number" min="0" max="1" step="0.05" value="0.55"/>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Громкость SFX (0..1)</label>
+              <input id="sfxVol" type="number" min="0" max="1" step="0.05" value="0.20"/>
+            </div>
+            <div>
+              <label>Громкость “тика” (0..1)</label>
+              <input id="tickVol" type="number" min="0" max="1" step="0.05" value="0.08"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btnRow">
+      <button class="btn primary" id="applyBtn">Обновить превью</button>
+      <button class="btn" id="copyBtn">Скопировать iframe для Genially</button>
+      <button class="btn danger" id="resetBtn">Сбросить к базовым</button>
+      <textarea id="iframeOut" style="position:absolute;left:-9999px;top:-9999px;height:1px;width:1px;opacity:0;"></textarea>
+    </div>
+
+    <div class="footer">
+      <div class="copy">© Все права принадлежат Башлыковой Оксане Михайловне</div>
+      <div style="opacity:.65;">English Bootcamp</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="pane right">
+    <div class="previewTop">
+      <div class="title">Предпросмотр игры</div>
+      <div class="split">
+        <div class="pill" id="statusPill">готово</div>
+      </div>
+    </div>
+    <iframe id="preview" allow="autoplay"></iframe>
   </div>
 </div>
 
+<script>
+/* ===========================
+   Stars background
+=========================== */
+const starCanvas = document.getElementById('stars');
+const sctx = starCanvas.getContext('2d');
+let W=0,H=0,stars=[];
+function resizeStars(){
+  W = starCanvas.width = window.innerWidth;
+  H = starCanvas.height = window.innerHeight;
+}
+function rand(a,b){ return a + Math.random()*(b-a); }
+function initStars(){
+  stars = Array.from({length: 60}, ()=>({
+    x: rand(0,W), y: rand(0,H),
+    r: rand(1.8,4.8),
+    vx: rand(-0.25,0.25),
+    vy: rand(-0.20,0.20),
+    tw: rand(0,Math.PI*2),
+    sp: rand(0.008,0.02),
+    hue: rand(160,210)
+  }));
+}
+function drawStar(x,y,r,alpha,hue){
+  sctx.save();
+  sctx.translate(x,y);
+  sctx.beginPath();
+  const spikes = 5;
+  const outer = r;
+  const inner = r*0.45;
+  let rot = Math.PI/2*3;
+  sctx.moveTo(0,-outer);
+  for(let i=0;i<spikes;i++){
+    sctx.lineTo(Math.cos(rot)*outer, Math.sin(rot)*outer); rot+=Math.PI/spikes;
+    sctx.lineTo(Math.cos(rot)*inner, Math.sin(rot)*inner); rot+=Math.PI/spikes;
+  }
+  sctx.closePath();
+  sctx.fillStyle = `hsla(${hue},100%,70%,${alpha})`;
+  sctx.shadowBlur = 18;
+  sctx.shadowColor = `hsla(${hue},100%,60%,${alpha})`;
+  sctx.fill();
+  sctx.restore();
+}
+function tickStars(){
+  sctx.clearRect(0,0,W,H);
+  for(const st of stars){
+    st.x += st.vx; st.y += st.vy;
+    if(st.x< -40) st.x=W+40;
+    if(st.x> W+40) st.x=-40;
+    if(st.y< -40) st.y=H+40;
+    if(st.y> H+40) st.y=-40;
+    st.tw += st.sp;
+    const a = 0.45 + Math.sin(st.tw)*0.35;
+    drawStar(st.x, st.y, st.r, a, st.hue + Math.sin(st.tw*0.7)*10);
+  }
+  requestAnimationFrame(tickStars);
+}
+window.addEventListener('resize', ()=>{resizeStars(); initStars();});
+resizeStars(); initStars(); tickStars();
+
+/* ===========================
+   UI helpers
+=========================== */
+const $ = (id)=>document.getElementById(id);
+const statusPill = $('statusPill');
+
+function setStatus(txt){
+  statusPill.textContent = txt;
+  clearTimeout(setStatus._t);
+  setStatus._t = setTimeout(()=>statusPill.textContent='готово', 1000);
+}
+
+function escForSrcdoc(html){
+  return html
+    .replace(/&/g,'&amp;')
+    .replace(/'/g,'&#39;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+async function fileToDataURL(file){
+  if(!file) return "";
+  return await new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(String(r.result||""));
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ===========================
+   Tabs
+=========================== */
+const tabWrap = $('tabs');
+tabWrap.addEventListener('click', (e)=>{
+  const b = e.target.closest('.tabBtn');
+  if(!b) return;
+  document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const key = b.dataset.tab;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec_'+key).classList.add('active');
+});
+
+/* ===========================
+   Defaults: 10 tasks
+=========================== */
+const defaultTasks =
+`I ___ running. | am | is | are
+She ___ happy. | is | am | are
+They ___ friends. | are | is | am
+He ___ a teacher. | is | are | am
+We ___ ready. | are | is | am
+It ___ cold. | is | are | am
+You ___ late. | are | is | am
+My dog ___ cute. | is | are | am
+The kids ___ here. | are | is | am
+I ___ tired. | am | is | are`;
+
+$('tasksTA').value = defaultTasks;
+
+/* ===========================
+   Build game HTML (template)
+=========================== */
+function parseTasks(text){
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const items = [];
+  for(const ln of lines){
+    const parts = ln.split('|').map(x=>x.trim());
+    if(parts.length < 4) continue;
+    items.push({q: parts[0], a0: parts[1], a1: parts[2], a2: parts[3]});
+  }
+  return items;
+}
+
+function buildGameHtml(state){
+  const t = state.texts;
+  const tasks = state.tasks;
+  const qBlock = tasks.map(x=>x.q).join('\n');
+const aBlock = tasks.map(x=>`${x.a0}|${x.a1}|${x.a2}`).join('\n');
+  const ui = state.neonOn ? state.uiColor : '#7a7a7a';
+
+  const bgCSS = (()=>{
+    if(state.bgMode === 'transparent') return `background:transparent;`;
+    if(state.bgMode === 'color') return `background:${state.bgColor};`;
+    const url = state.bgMode === 'upload' ? state.bgDataURL : state.bgUrl;
+    return `background:url('${url}') center/cover no-repeat;`;
+  })();
+
+  const overlayBgRGBA = (()=>{
+    const hex = state.overlayBg.replace('#','');
+    const r = parseInt(hex.slice(0,2),16);
+    const g = parseInt(hex.slice(2,4),16);
+    const b = parseInt(hex.slice(4,6),16);
+    return `rgba(${r},${g},${b},${state.overlayAlpha})`;
+  })();
+
+  const btnHover = state.btnNeonHover ? `
+    #OVERLAY .btnMain:hover{
+      transform:translateY(-1px) !important;
+      background:rgba(0,255,213,.16) !important;
+      box-shadow:
+        0 0 0 2px ${ui},
+        0 0 42px rgba(0,255,213,.28),
+        0 0 18px rgba(0,255,213,.22) inset !important;
+    }` : ``;
+
+  const gearHTML = Array.from({length: state.gearCount}, (_,i)=>`
+    <div class="gear" id="g${i}"><div class="img"></div><div class="label"></div></div>
+  `).join('');
+
+  const MUSIC_URL = state.musicDataURL || "";
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>${t.gameTitle}</title>
+
 <style>
-#FX_ROOT {
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  font-family: Arial;
-}
-.card {
-  background:${bg};
-  color:${text};
-  padding:22px;
-  border-radius:${radius}px;
-  width:360px;
-  text-align:center;
-  box-shadow:${shadow};
-}
-.avatar {
-  width:72px;
-  height:72px;
-  border-radius:50%;
-  object-fit:cover;
-  margin-bottom:14px;
-  box-shadow:${avatarGlow};
-}
-.card input,
-.card button {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:${radius}px;
-  border:none;
-  font-size:${fontSize}px;
-}
-.card input { background:#fff; }
-.card button {
-  background:${accent};
-  color:#fff;
-  font-weight:bold;
-}
-.result { margin-top:12px; }
+  :root{
+    --ui:${ui};
+    --danger:#ff2b2b;
+
+    --qTop:${state.qTop}px;
+    --centerLift:${state.centerLift}px;
+    --gearGapPx:${state.gearGap}px;
+
+    --qFont:${state.qFont};
+    --qSize:${state.qFontSize}px;
+    --qColor:${state.qColor};
+
+    --aFont:${state.aFont};
+    --aSize:${state.aFontSize}px;
+    --aColor:${state.aColor};
+
+    --ovTitleFont:${state.ovTitleFont};
+    --ovTitleSize:${state.ovTitleSize}px;
+    --ovTitleColor:${state.ovTitleColor};
+
+    --ovTextFont:${state.ovTextFont};
+    --ovTextSize:${state.ovTextSize}px;
+    --ovTextColor:${state.ovTextColor};
+  }
+
+  html,body{
+    margin:0; width:100%; height:100%;
+    overflow:hidden;
+    ${state.bgMode==='transparent' ? 'background:transparent;' : 'background:#000;'}
+    font-family:Arial, sans-serif;
+  }
+  #APP{position:relative;width:100%;height:100%; overflow:hidden;}
+
+  #APP.locked #HUD,
+  #APP.locked #QUESTION,
+  #APP.locked #MECH{ visibility:hidden; }
+
+  #BG{
+    position:absolute; inset:0;
+    ${bgCSS}
+    filter:saturate(1.05) contrast(1.05);
+  }
+  #BG::after{content:""; position:absolute; inset:0; background:rgba(0,0,0,.14);}
+
+  #HUD{ position:absolute; inset:0 auto auto 0; width:100%; padding:14px 16px; z-index:6; pointer-events:none; }
+  #HUDleft{ pointer-events:auto; position:absolute; left:16px; top:14px; display:flex; flex-direction:column; gap:12px; align-items:flex-start; }
+  #HUDright{ pointer-events:auto; position:absolute; right:16px; top:14px; display:flex; gap:12px; align-items:flex-start; }
+
+  #lives{
+    display:flex; gap:10px; align-items:center;
+    padding:12px 14px; border-radius:18px;
+    background:rgba(0,0,0,.34); backdrop-filter: blur(6px);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 0 0 2px rgba(255,43,43,.18) inset, 0 0 22px rgba(255,43,43,.14);
+  }
+  .heart{
+    width:56px; height:56px;
+    background:url('${state.heartURL}') center/contain no-repeat;
+    filter:drop-shadow(0 0 14px rgba(255,70,70,.75));
+  }
+  .heart.off{opacity:.18; filter:none;}
+
+  #progress{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;
+    padding:12px 14px; border-radius:18px;
+    background:rgba(0,0,0,.34); backdrop-filter: blur(6px);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 0 0 2px rgba(0,255,213,.18) inset, 0 0 22px rgba(0,255,213,.14);
+  }
+  .pbox{
+    width:54px; height:54px; border-radius:16px;
+    border:2px solid rgba(0,255,213,.72);
+    background:rgba(0,0,0,.22);
+    box-shadow:0 0 14px rgba(0,255,213,.18);
+    display:grid; place-items:center; overflow:hidden;
+  }
+  .pbox.filled::before{
+    content:"";
+    width:42px;height:42px;
+    background:url('${state.markerURL}') center/contain no-repeat;
+    filter:drop-shadow(0 0 12px rgba(0,255,213,.55));
+    opacity:.95;
+  }
+
+  #timerWrap{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; border-radius:18px;
+    background:rgba(0,0,0,.34); backdrop-filter: blur(6px);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 0 0 2px rgba(0,255,213,.18) inset, 0 0 22px rgba(0,255,213,.14);
+    user-select:none;
+  }
+  #timerIcon{
+    width:46px;height:46px;
+    background:url('${state.timerIconURL}') center/contain no-repeat;
+    filter:drop-shadow(0 0 14px rgba(0,255,213,.55));
+  }
+  #timerText{
+    min-width:52px; font-size:38px; line-height:1; font-weight:900;
+    color:var(--qColor); text-shadow:0 2px 16px rgba(0,0,0,.8); text-align:right;
+  }
+  #timerWrap.danger{
+    box-shadow: 0 0 0 1px rgba(255,43,43,.72), 0 0 0 2px rgba(255,43,43,.18) inset, 0 0 28px rgba(255,43,43,.22);
+    animation:pulseDanger .55s infinite alternate;
+  }
+  #timerWrap.danger #timerText{color:#ffe3e3;}
+  #timerWrap.danger #timerIcon{filter:drop-shadow(0 0 18px rgba(255,43,43,.8));}
+  @keyframes pulseDanger{from{transform:scale(1)}to{transform:scale(1.05)}}
+
+  #musicBtn{
+    width:56px;height:56px; border-radius:18px; border:none; cursor:pointer;
+    background:rgba(0,0,0,.34); backdrop-filter: blur(6px);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 0 0 2px rgba(0,255,213,.18) inset, 0 0 22px rgba(0,255,213,.14);
+    color:var(--qColor); font-size:24px; font-weight:900; pointer-events:auto;
+    transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  }
+  #musicBtn:hover{transform:translateY(-1px); box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 0 0 2px rgba(0,255,213,.35) inset, 0 0 28px rgba(0,255,213,.22);}
+  #musicBtn.off{opacity:.55}
+
+  #QUESTION{
+    position:absolute; left:50%; top:var(--qTop); transform:translateX(-50%);
+    width:min(860px, calc(100% - 300px)); height:96px; z-index:5;
+    display:flex; align-items:center; justify-content:center;
+    padding:12px 28px; text-align:center; font-weight:900;
+    font-family:var(--qFont);
+    font-size:var(--qSize);
+    color:var(--qColor);
+    line-height:1.12; text-shadow:0 2px 16px rgba(0,0,0,.85);
+    pointer-events:none;
+  }
+  #QUESTION::before{
+    content:""; position:absolute; inset:0;
+    background:url('${state.qPanelURL}') center/contain no-repeat;
+    filter:drop-shadow(0 16px 26px rgba(0,0,0,.40));
+    z-index:-1;
+  }
+
+  #MECH{
+    position:absolute; left:50%; top:60%; transform:translate(-50%,-50%);
+    width:min(980px, 96vw); height:min(580px, 70vh);
+    z-index:4; pointer-events:auto;
+  }
+  #center{
+    position:absolute; left:50%; top:calc(56% - var(--centerLift));
+    transform:translate(-50%,-50%);
+    width:min(260px, 28vw); aspect-ratio:1/1;
+    background:url('${state.centerURL}') center/contain no-repeat;
+    filter:drop-shadow(0 20px 32px rgba(0,0,0,.55));
+    pointer-events:none; z-index:3;
+  }
+  .gear{
+    position:absolute; left:50%; top:calc(56% - var(--centerLift));
+    width:min(148px, 16vw); aspect-ratio:1/1;
+    transform:translate(-50%,-50%);
+    display:grid; place-items:center; cursor:pointer;
+    z-index:2; pointer-events:auto; touch-action: manipulation;
+  }
+  .gear .img{
+    position:absolute; inset:0;
+    background:url('${state.gearURL}') center/contain no-repeat;
+    filter:drop-shadow(0 16px 24px rgba(0,0,0,.52));
+    pointer-events:none;
+  }
+  .gear .label{
+    position:relative; max-width:78%;
+    padding:10px 12px; border-radius:14px;
+    background:rgba(0,0,0,.50);
+    box-shadow: 0 0 0 2px rgba(255,255,255,.10), 0 0 18px rgba(0,255,213,.10);
+    font-weight:900; text-align:center; line-height:1.05;
+    font-family:var(--aFont);
+    font-size:var(--aSize);
+    color:var(--aColor);
+    text-shadow:0 2px 14px rgba(0,0,0,.9);
+    user-select:none; pointer-events:none;
+  }
+
+  .shake{animation:shake .25s;}
+  @keyframes shake{
+    0%{transform:translate(-50%,-50%)}
+    25%{transform:translate(calc(-50% - 4px),calc(-50% + 3px))}
+    50%{transform:translate(calc(-50% + 4px),calc(-50% - 3px))}
+    75%{transform:translate(calc(-50% - 3px),calc(-50% + 2px))}
+    100%{transform:translate(-50%,-50%)}
+  }
+
+  /* ===== OVERLAY ===== */
+  #OVERLAY{
+    position:absolute !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    z-index:999999 !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    padding:22px !important;
+    background:${overlayBgRGBA} !important;
+    backdrop-filter: blur(8px) !important;
+  }
+  #OVERLAY.hidden{ opacity:0 !important; pointer-events:none !important; visibility:hidden !important; }
+
+  #OVERLAY .overlayCard{
+    width:min(980px, 92vw) !important;
+    border-radius:26px !important;
+    padding:30px 30px 26px !important;
+
+    background:rgba(0,0,0,.28) !important;
+    border:2px solid rgba(0,255,213,.38) !important;
+
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.04) inset,
+      0 0 40px rgba(0,255,213,.12),
+      0 18px 60px rgba(0,0,0,.55) !important;
+
+    text-align:center !important;
+    position:relative !important;
+    overflow:hidden !important;
+    margin:0 auto !important;
+
+    transform: translateY(${state.overlayLiftVh}vh) !important;
+  }
+  #OVERLAY .overlayCard::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background:
+      radial-gradient(60% 80% at 50% 30%, rgba(0,255,213,.10), transparent 70%),
+      radial-gradient(60% 80% at 50% 100%, rgba(0,255,213,.06), transparent 70%);
+    pointer-events:none;
+  }
+  #OVERLAY .overlayCard.danger{ border-color:rgba(255,43,43,.44) !important; }
+
+  #startMask{
+    width:86px; height:86px; margin:0 auto 14px;
+    background:url('${state.centerURL}') center/contain no-repeat;
+    filter: drop-shadow(0 16px 26px rgba(0,0,0,.65)) drop-shadow(0 0 18px rgba(0,255,213,.22));
+    opacity:.95;
+  }
+  #OVERLAY .title{
+    font-weight:900 !important;
+    font-family:var(--ovTitleFont) !important;
+    font-size:var(--ovTitleSize) !important;
+    margin:0 0 10px !important;
+    color:var(--ovTitleColor) !important;
+    line-height:1.03 !important;
+    letter-spacing:.3px !important;
+    text-shadow: 0 0 18px rgba(0,255,213,.14), 0 2px 18px rgba(0,0,0,.9) !important;
+  }
+  #OVERLAY .subtitle{
+    font-family:var(--ovTextFont) !important;
+    font-size:var(--ovTextSize) !important;
+    color:var(--ovTextColor) !important;
+    opacity:.95 !important;
+    margin:0 auto 20px !important;
+    max-width:780px !important;
+    line-height:1.28 !important;
+    text-shadow:0 2px 14px rgba(0,0,0,.86) !important;
+  }
+  #OVERLAY .rowBtns{ display:flex !important; gap:14px !important; justify-content:center !important; flex-wrap:wrap !important; }
+  #OVERLAY .btnMain{
+    cursor:pointer !important; border:none !important;
+    padding:14px 26px !important; border-radius:18px !important;
+    font-weight:900 !important; letter-spacing:.6px !important;
+    color:var(--ovTitleColor) !important;
+    background:rgba(0,0,0,.38) !important;
+    box-shadow: 0 0 0 2px rgba(0,255,213,.42), 0 0 28px rgba(0,255,213,.14) !important;
+    text-shadow:0 2px 14px rgba(0,0,0,.92) !important;
+    font-size:16px !important; min-width:190px !important;
+    display:inline-flex !important; align-items:center !important; justify-content:center !important;
+    white-space:nowrap !important;
+    transition:transform .14s ease, box-shadow .14s ease, background .14s ease !important;
+  }
+  ${btnHover}
+  #OVERLAY .btnMain:active{ transform:translateY(0) scale(.98) !important; }
+
 </style>
+</head>
+<body>
+<div id="APP">
+  <div id="BG"></div>
+
+  <div id="HUD">
+    <div id="HUDleft">
+      <div id="lives"></div>
+      <div id="progress"></div>
+    </div>
+    <div id="HUDright">
+      <div id="timerWrap">
+        <div id="timerIcon"></div>
+        <div id="timerText">${state.timePerQ}</div>
+      </div>
+      <button id="musicBtn" title="Music"></button>
+    </div>
+  </div>
+
+  <div id="QUESTION"></div>
+
+  <div id="MECH">
+    <div id="center"></div>
+    ${gearHTML}
+  </div>
+
+  <div id="OVERLAY">
+    <div class="overlayCard" id="ovCard">
+      <div id="startMask"></div>
+      <div class="title" id="ovTitle"></div>
+      <div class="subtitle" id="ovText"></div>
+      <div class="rowBtns" id="ovBtns"></div>
+    </div>
+  </div>
+
+  <audio id="bgm" preload="auto" loop></audio>
+</div>
 
 <script>
-const DICTIONARY = ${JSON.stringify(dict)};
-const VOLUME = ${volume};
+const MUSIC_URL = ${JSON.stringify(MUSIC_URL)};
+const TIME_PER_Q = ${state.timePerQ};
+const DANGER_AT = ${state.dangerAt};
+const START_LIVES = ${state.lives};
+const TARGET_SCORE = ${state.targetScore};
 
-document.getElementById("translate").onclick = () => {
-  const v = document.getElementById("word").value.trim().toLowerCase();
-  document.getElementById("result").textContent =
-    (!v || v.includes(" ")) ? "Введите одно слово" :
-    (DICTIONARY[v] || "Нет перевода");
+const TEXTS = {
+  gameTitle: ${JSON.stringify(t.gameTitle)},
+  startBtnText: ${JSON.stringify(t.startBtnText)},
+  startTitle: ${JSON.stringify(t.startTitle)},
+  startTask: ${JSON.stringify(t.startText)},
+  winTitle: ${JSON.stringify(t.winTitle)},
+  winText: ${JSON.stringify(t.winText)},
+  lostTitle: ${JSON.stringify(t.lostTitle)},
+  lostText: ${JSON.stringify(t.lostText)},
+  overTitle: ${JSON.stringify(t.overTitle)},
+  overText: ${JSON.stringify(t.overText)},
 };
-document.getElementById("speak").onclick = () => {
-  const v = document.getElementById("word").value.trim();
-  if (!v) return;
-  const u = new SpeechSynthesisUtterance(v);
-  u.lang="en-US"; u.volume=VOLUME;
-  speechSynthesis.speak(u);
-};
-<\/script>
-`;
 
-  const iframe =
-`<iframe style="width:960px;height:720px;max-width:100%;border:none;"
-srcdoc="${inner.replace(/"/g,'&quot;')}"></iframe>`;
+const QUESTIONS_BLOCK = ${JSON.stringify(qBlock)};
+const ANSWERS_BLOCK = ${JSON.stringify(aBlock)};
 
-  preview.srcdoc = inner;
-  codeBox.value = iframe;
+const el = (id)=>document.getElementById(id);
+const gears = Array.from(document.querySelectorAll('.gear'));
+const labels = gears.map(g=>g.querySelector(".label"));
+
+const timerWrap = el("timerWrap");
+const timerText = el("timerText");
+const questionBox = el("QUESTION");
+
+const overlay = el("OVERLAY");
+const ovTitle = el("ovTitle");
+const ovText  = el("ovText");
+const ovBtns  = el("ovBtns");
+const ovCard  = el("ovCard");
+const startMask = el("startMask");
+
+const musicBtn = el("musicBtn");
+const bgm = el("bgm");
+
+let musicOn = true;
+let lives = START_LIVES;
+let score = 0;
+let qDeck = [];
+let current = null;
+
+let timeLeft = TIME_PER_Q;
+let timerInterval = null;
+let ended = false;
+
+let orbitT = 0;
+let rafId = null;
+
+let spinSpeed = ${state.spinSpeed};
+let orbitSpeed = ${state.orbitSpeed};
+let spinSelf = ${state.spinSelf ? 'true' : 'false'};
+
+function stopTimer(){
+  if(timerInterval){
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 }
 
-generate();
+/* ========= WebAudio SFX ========= */
+let AC = null;
+function audioCtx(){
+  if(!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    AC = new Ctx();
+  }
+  return AC;
+}
+function beep({freq=440, dur=0.12, type="sine", vol=0.2, slide=0, when=0}){
+  const ctx = audioCtx();
+  const t0 = ctx.currentTime + when;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t0);
+  if(slide){
+    o.frequency.exponentialRampToValueAtTime(Math.max(20,freq*slide), t0+dur);
+  }
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(${state.sfxVol} * vol, t0+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+  o.connect(g).connect(ctx.destination);
+  o.start(t0);
+  o.stop(t0+dur+0.02);
+}
+function sfxCorrect(){
+  beep({freq:520,type:"triangle",dur:0.10,vol:0.16});
+  beep({freq:780,type:"triangle",dur:0.12,vol:0.14,when:0.06});
+  beep({freq:1040,type:"sine",dur:0.10,vol:0.10,when:0.12});
+}
+function sfxWrong(){
+  beep({freq:220,type:"sawtooth",dur:0.16,vol:0.12,slide:0.65});
+  beep({freq:160,type:"sawtooth",dur:0.18,vol:0.10,when:0.10,slide:0.55});
+}
+function sfxTick(){
+  beep({freq:980,type:"square",dur:0.06,vol:${state.tickVol}});
+}
+function sfxWin(){
+  beep({freq:523.25,type:"triangle",dur:0.10,vol:0.12});
+  beep({freq:659.25,type:"triangle",dur:0.10,vol:0.12,when:0.08});
+  beep({freq:783.99,type:"triangle",dur:0.12,vol:0.12,when:0.16});
+  beep({freq:1046.5,type:"sine",dur:0.18,vol:0.10,when:0.26});
+}
+function sfxLose(){
+  beep({freq:300,type:"sawtooth",dur:0.16,vol:0.11,slide:0.55});
+  beep({freq:220,type:"sawtooth",dur:0.18,vol:0.10,when:0.12,slide:0.50});
+  beep({freq:160,type:"sine",dur:0.22,vol:0.08,when:0.26,slide:0.45});
+}
 
-document.getElementById("copy").onclick = () => {
-  navigator.clipboard.writeText(codeBox.value);
-  alert("Iframe скопирован ✅");
-};
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function parseBlocks(qBlock, aBlock){
+const qs = (qBlock || "").split(/\r?\n|\\n/g).map(s=>s.trim()).filter(Boolean);
+const as = (aBlock || "").split(/\r?\n|\\n/g).map(s=>s.trim()).filter(Boolean);
+  const n = Math.min(qs.length, as.length);
+  const items = [];
+  for(let i=0;i<n;i++){
+    const parts = as[i].split("|").map(x=>x.trim());
+    if(parts.length < 3) continue;
+    items.push({ q: qs[i], correct: parts[0], wrong: [parts[1], parts[2]] });
+  }
+  return items;
+}
+function buildDeck(){
+  const items = parseBlocks(QUESTIONS_BLOCK, ANSWERS_BLOCK);
+  shuffle(items);
+  return items.slice(0, TARGET_SCORE);
+}
 
-function bgInput(){return document.getElementById("bg")}
-function textInput(){return document.getElementById("text")}
-function accentInput(){return document.getElementById("accent")}
-function glowInput(){return document.getElementById("glow")}
-function imageInput(){return document.getElementById("image")}
-function radiusInput(){return document.getElementById("radius")}
-function fontSizeInput(){return document.getElementById("fontSize")}
-function volumeInput(){return document.getElementById("volume")}
-function dictInput(){return document.getElementById("dict")}
+function renderProgress(){
+  const p = el("progress");
+  p.innerHTML = "";
+  for(let i=0;i<TARGET_SCORE;i++){
+    const d = document.createElement("div");
+    d.className = "pbox" + (i < score ? " filled" : "");
+    p.appendChild(d);
+  }
+}
+function renderLives(){
+  const l = el("lives");
+  l.innerHTML = "";
+  for(let i=0;i<START_LIVES;i++){
+    const h = document.createElement("div");
+    h.className = "heart" + (i < lives ? "" : " off");
+    l.appendChild(h);
+  }
+}
+
+/* overlay */
+function setOverlay({title, text, danger=false, showMask=false, buttons=[]}){
+  ovTitle.textContent = title;
+  ovText.textContent = text;
+  ovCard.classList.toggle("danger", !!danger);
+  startMask.style.display = showMask ? "block" : "none";
+
+  ovBtns.innerHTML = "";
+  buttons.forEach(b=>{
+    const btn = document.createElement("button");
+    btn.type="button";
+    btn.className = "btnMain " + (b.kind||"");
+    btn.textContent = b.text;
+    btn.addEventListener("click", b.onClick);
+    ovBtns.appendChild(btn);
+  });
+
+  overlay.classList.remove("hidden");
+  questionBox.classList.add("hidden");
+}
+function hideOverlay(){
+  overlay.classList.add("hidden");
+  questionBox.classList.remove("hidden");
+}
+
+/* music */
+function updateMusicBtn(){
+  musicBtn.textContent = musicOn ? "🔊" : "🔇";
+  musicBtn.classList.toggle("off", !musicOn);
+}
+musicBtn.addEventListener("click", async ()=>{
+  try{ audioCtx().resume(); }catch(e){}
+  musicOn = !musicOn;
+  updateMusicBtn();
+  if(!MUSIC_URL) return;
+
+  if(musicOn){
+    try{ await bgm.play(); }catch(e){}
+  }else{
+    try{ bgm.pause(); }catch(e){}
+  }
+});
+function loadMusic(){
+  if(!MUSIC_URL){
+    bgm.removeAttribute("src");
+    return;
+  }
+  bgm.src = MUSIC_URL;
+  bgm.volume = ${state.musicVol};
+}
+
+/* flow */
+function resetGame(){
+  ended = false;
+  stopTimer();
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null; }
+
+  lives = START_LIVES;
+  score = 0;
+  qDeck = buildDeck();
+  current = null;
+  orbitT = 0;
+  timeLeft = TIME_PER_Q;
+  timerWrap.classList.remove("danger");
+  timerText.textContent = String(TIME_PER_Q);
+
+  renderLives();
+  renderProgress();
+}
+
+function startTimer(){
+  if(ended) return;
+  stopTimer();
+  timerInterval = setInterval(()=>{
+    if(ended){ stopTimer(); return; }
+    timeLeft--;
+    timerText.textContent = String(Math.max(0,timeLeft));
+
+    if(timeLeft <= DANGER_AT){
+      timerWrap.classList.add("danger");
+      sfxTick();
+    }else{
+      timerWrap.classList.remove("danger");
+    }
+
+    if(timeLeft <= 0){
+      ended = true;
+      stopTimer();
+      sfxLose();
+      setOverlay({
+        title: TEXTS.lostTitle,
+        text:  TEXTS.lostText,
+        danger:true,
+        showMask:false,
+        buttons:[{text:"PLAY AGAIN", kind:"danger", onClick: ()=> startGame(true)}]
+      });
+    }
+  }, 1000);
+}
+
+function nextQuestion(){
+  if(ended) return;
+
+  timerWrap.classList.remove("danger");
+  timeLeft = TIME_PER_Q;
+  timerText.textContent = String(timeLeft);
+
+  current = qDeck.shift();
+  if(!current){
+    ended = true;
+    stopTimer();
+    sfxWin();
+    setOverlay({
+      title: TEXTS.winTitle,
+      text:  TEXTS.winText,
+      danger:false,
+      showMask:false,
+      buttons:[{text:"PLAY AGAIN", kind:"", onClick: ()=> startGame(true)}]
+    });
+    return;
+  }
+
+  questionBox.textContent = current.q;
+
+  const answers = [
+    {text: current.correct, ok:true},
+    {text: current.wrong[0], ok:false},
+    {text: current.wrong[1], ok:false}
+  ];
+  shuffle(answers);
+
+  answers.forEach((a,i)=>{
+    labels[i].textContent = a.text;
+    gears[i].dataset.ok = a.ok ? "1" : "0";
+  });
+
+  startTimer();
+}
+
+function onChoose(gearEl){
+  if(ended) return;
+  try{ audioCtx().resume(); }catch(e){}
+  const ok = gearEl.dataset.ok === "1";
+
+  if(ok){
+    sfxCorrect();
+    score++;
+    renderProgress();
+
+    gearEl.classList.add("shake");
+    setTimeout(()=>gearEl.classList.remove("shake"), 180);
+
+    if(score >= TARGET_SCORE){
+      ended = true;
+      stopTimer();
+      sfxWin();
+      setOverlay({
+        title: TEXTS.winTitle,
+        text:  TEXTS.winText,
+        danger:false,
+        showMask:false,
+        buttons:[{text:"PLAY AGAIN", kind:"", onClick: ()=> startGame(true)}]
+      });
+      return;
+    }
+    nextQuestion();
+  }else{
+    sfxWrong();
+    lives--;
+    renderLives();
+
+    gears.forEach(g=>g.classList.add("shake"));
+    setTimeout(()=>gears.forEach(g=>g.classList.remove("shake")), 220);
+
+    if(lives <= 0){
+      ended = true;
+      stopTimer();
+      sfxLose();
+      setOverlay({
+        title: TEXTS.overTitle,
+        text:  TEXTS.overText,
+        danger:true,
+        showMask:false,
+        buttons:[{text:"PLAY AGAIN", kind:"danger", onClick: ()=> startGame(true)}]
+      });
+    }
+  }
+}
+
+/* orbit */
+function animate(){
+  const centerEl = el("center");
+  const c = centerEl.getBoundingClientRect();
+  const g = gears[0].getBoundingClientRect();
+
+  const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gearGapPx")) || 7;
+  const K = ${state.orbitK};
+  const R = ((c.width/2) + (g.width/2) + gap) * K;
+
+  orbitT += 0.016 * orbitSpeed;
+
+  const N = gears.length;
+  for(let i=0;i<N;i++){
+    const ang = orbitT + i * (Math.PI * 2 / N);
+    const x = Math.cos(ang) * R;
+    const y = Math.sin(ang) * R;
+
+    gears[i].style.left = "50%";
+    gears[i].style.top  = "calc(56% - var(--centerLift))";
+    gears[i].style.transform = \`translate(calc(-50% + \${x}px), calc(-50% + \${y}px))\`;
+
+    if(spinSelf){
+      const deg = (orbitT * 180/Math.PI) * 2.25 * spinSpeed * (i%2===0?1:-1);
+      gears[i].querySelector(".img").style.transform = \`rotate(\${deg}deg)\`;
+    }else{
+      gears[i].querySelector(".img").style.transform = \`rotate(0deg)\`;
+    }
+  }
+  rafId = requestAnimationFrame(animate);
+}
+
+function startGame(fromScratch){
+  if(fromScratch) resetGame();
+
+  el("APP").classList.remove("locked");
+  hideOverlay();
+
+  renderLives();
+  renderProgress();
+
+  if(musicOn && MUSIC_URL){
+    bgm.play().catch(()=>{});
+  }
+  if(!rafId) animate();
+  nextQuestion();
+}
+
+/* init */
+function init(){
+  loadMusic();
+  updateMusicBtn();
+  resetGame();
+
+  el("APP").classList.add("locked");
+  setOverlay({
+    title: TEXTS.startTitle,
+    text:  TEXTS.startTask,
+    danger:false,
+    showMask:true,
+    buttons:[{text: TEXTS.startBtnText, kind:"", onClick: ()=> startGame(false)}]
+  });
+
+  gears.forEach(g=>{
+    g.addEventListener("click", ()=>onChoose(g));
+    g.addEventListener("pointerdown", (e)=>{ e.preventDefault(); onChoose(g); });
+  });
+}
+init();
+<\/script>
+</body>
+</html>`;
+}
+
+/* ===========================
+   Collect state from editor
+=========================== */
+async function collectState(){
+  const tasks = parseTasks($('tasksTA').value);
+  while(tasks.length < 10){
+    const d = parseTasks(defaultTasks)[tasks.length];
+    if(!d) break;
+    tasks.push(d);
+  }
+  const tasks10 = tasks.slice(0,10);
+
+  const bgMode = $('bgMode').value;
+  const bgDataURL = await fileToDataURL($('bgFile').files[0]);
+
+  const heartData = await fileToDataURL($('heartFile').files[0]);
+  const timerData = await fileToDataURL($('timerFile').files[0]);
+  const markerData = await fileToDataURL($('markerFile').files[0]);
+  const qPanelData = await fileToDataURL($('qPanelFile').files[0]);
+  const gearData = await fileToDataURL($('gearFile').files[0]);
+  const centerData = await fileToDataURL($('centerFile').files[0]);
+
+  const musicData = await fileToDataURL($('musicFile').files[0]);
+
+  return {
+    tasks: tasks10,
+
+    timePerQ: +$('timePerQ').value || 10,
+    lives: +$('lives').value || 3,
+    targetScore: +$('targetScore').value || 10,
+    dangerAt: +$('dangerAt').value || 5,
+
+    neonOn: $('neonOn').checked,
+    uiColor: $('uiColor').value,
+
+    bgMode,
+    bgUrl: $('bgUrl').value.trim(),
+    bgDataURL,
+    bgColor: $('bgColor').value,
+
+    heartURL: heartData || $('heartUrl').value.trim(),
+    timerIconURL: timerData || $('timerUrl').value.trim(),
+    markerURL: markerData || $('markerUrl').value.trim(),
+    qPanelURL: qPanelData || $('qPanelUrl').value.trim(),
+    gearURL: gearData || $('gearUrl').value.trim(),
+    centerURL: centerData || $('centerUrl').value.trim(),
+
+    gearCount: Math.max(2, Math.min(5, +$('gearCount').value || 3)),
+    spinSelf: $('spinSelf').checked,
+    orbitSpeed: +$('orbitSpeed').value || 0.75,
+    spinSpeed: +$('spinSpeed').value || 1,
+    centerLift: +$('centerLift').value || 49,
+    gearGap: +$('gearGap').value || 5,
+    orbitK: +$('orbitK').value || 0.80,
+
+    // typography
+    qFont: $('qFont').value,
+    qFontSize: +$('qFontSize').value || 22,
+    qColor: $('qColor').value,
+
+    aFont: $('aFont').value,
+    aFontSize: +$('aFontSize').value || 18,
+    aColor: $('aColor').value,
+
+    ovTitleFont: $('ovTitleFont').value,
+    ovTitleSize: +$('ovTitleSize').value || 52,
+    ovTitleColor: $('ovTitleColor').value,
+
+    ovTextFont: $('ovTextFont').value,
+    ovTextSize: +$('ovTextSize').value || 18,
+    ovTextColor: $('ovTextColor').value,
+
+    overlayBg: $('overlayBg').value,
+    overlayAlpha: Math.max(0, Math.min(1, +$('overlayAlpha').value || 0.58)),
+    overlayLiftVh: +$('overlayLiftVh').value || -4,
+    btnNeonHover: $('btnNeonHover').checked,
+
+    musicDataURL: musicData || "",
+    musicVol: Math.max(0, Math.min(1, +$('musicVol').value || 0.55)),
+    sfxVol: Math.max(0, Math.min(1, +$('sfxVol').value || 0.20)),
+    tickVol: Math.max(0, Math.min(1, +$('tickVol').value || 0.08)),
+
+    qTop: 17,
+
+    texts:{
+      gameTitle: $('gameTitle').value.trim(),
+      startBtnText: $('startBtnText').value.trim() || "START",
+      startTitle: $('startTitle').value.trim(),
+      startText: $('startText').value.trim(),
+      winTitle: $('winTitle').value.trim(),
+      winText: $('winText').value.trim(),
+      lostTitle: $('lostTitle').value.trim(),
+      lostText: $('lostText').value.trim(),
+      overTitle: $('overTitle').value.trim(),
+      overText: $('overText').value.trim(),
+    }
+  };
+}
+
+/* ===========================
+   Apply / Preview / Copy
+=========================== */
+async function applyPreview(){
+  setStatus('обновляю…');
+  const state = await collectState();
+  const html = buildGameHtml(state);
+  $('preview').srcdoc = html;
+
+  const iframeCode = `<iframe style="width:100%;height:100%;border:0" srcdoc='${escForSrcdoc(html)}'></iframe>`;
+  $('iframeOut').value = iframeCode;
+  setStatus('готово');
+}
+
+$('applyBtn').addEventListener('click', applyPreview);
+
+$('copyBtn').addEventListener('click', async ()=>{
+  try{
+    await applyPreview();
+    await navigator.clipboard.writeText($('iframeOut').value);
+    setStatus('скопировано ✅');
+  }catch(e){
+    alert("Не удалось скопировать автоматически. Можно нажать Ctrl+C по кнопке ещё раз или открыть сайт по https (GitHub Pages).");
+  }
+});
+
+$('resetBtn').addEventListener('click', ()=>{
+  $('tasksTA').value = defaultTasks;
+
+  $('timePerQ').value = 10;
+  $('lives').value = 3;
+  $('targetScore').value = 10;
+  $('dangerAt').value = 5;
+
+  $('neonOn').checked = true;
+  $('uiColor').value = "#00ffd5";
+
+  $('bgMode').value = "url";
+  $('bgUrl').value = "https://img.genially.com/67961b32a116fb001568a75e/d58b1f28-a8e9-4bdf-93d2-0e9c18b8588c.png";
+  $('bgColor').value = "#000000";
+
+  $('qFont').value = "Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+  $('qFontSize').value = 22;
+  $('qColor').value = "#eaffff";
+
+  $('aFont').value = "Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+  $('aFontSize').value = 18;
+  $('aColor').value = "#eaffff";
+
+  $('ovTitleFont').value = "Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+  $('ovTitleSize').value = 52;
+  $('ovTitleColor').value = "#eaffff";
+
+  $('ovTextFont').value = "Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+  $('ovTextSize').value = 18;
+  $('ovTextColor').value = "#eaffff";
+
+  $('gearCount').value = 3;
+  $('spinSelf').checked = true;
+  $('orbitSpeed').value = 0.75;
+  $('spinSpeed').value = 1;
+  $('centerLift').value = 49;
+  $('gearGap').value = 5;
+  $('orbitK').value = 0.80;
+
+  $('gameTitle').value = "Heart of the Stone Machine";
+  $('startBtnText').value = "START";
+  $('startTitle').value = "Heart of the Stone Machine";
+  $('startText').value = "Start the stone mechanism. Choose the correct gear and fill all 10 markers before time runs out.";
+  $('winTitle').value = "You Win!";
+  $('winText').value = "The stone machine awakens. Well done!";
+  $('lostTitle').value = "You Lost!";
+  $('lostText').value = "Time has stopped the mechanism.";
+  $('overTitle').value = "Game Over";
+  $('overText').value = "No lives left. Try again!";
+
+  $('overlayBg').value = "#000000";
+  $('overlayAlpha').value = 0.58;
+  $('overlayLiftVh').value = -4;
+  $('btnNeonHover').checked = true;
+
+  $('musicVol').value = 0.55;
+  $('sfxVol').value = 0.20;
+  $('tickVol').value = 0.08;
+
+  setStatus('сброшено');
+  applyPreview();
+});
+
+/* Auto update */
+let autoTimer = null;
+function scheduleAuto(){
+  if(!$('autoUpdate')?.checked) return;
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(applyPreview, 250);
+}
+document.addEventListener('input', (e)=>{
+  if(e.target.closest('.pane.left')) scheduleAuto();
+});
+document.addEventListener('change', (e)=>{
+  if(e.target.closest('.pane.left')) scheduleAuto();
+});
+
+/* First preview */
+applyPreview();
 </script>
-
 </body>
 </html>
